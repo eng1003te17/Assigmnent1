@@ -1,6 +1,7 @@
 "use strict";
 //f
 /*
+//yes
  * This callback function will be called when any of the game buttons on the
  * screen is clicked on by the user (note that the user will not be able to
  * 'double-click' buttons, they will only be clickable once a button has
