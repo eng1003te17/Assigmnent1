@@ -5,7 +5,7 @@
  * screen is clicked on by the user (note that the user will not be able to
  * 'double-click' buttons, they will only be clickable once a button has
  * gone dark again)
- *
+ * hello
  * This function has a single parameter 'whichButton' that can take the
  * following values:
  *    "blue"
