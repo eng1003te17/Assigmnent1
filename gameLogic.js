@@ -1,7 +1,9 @@
 "use strict";
-//f
+let isTilt = false;
+let orientationBeta, orientationGamma;
+//Add callback for device orientation change
+window.addEventListener("deviceorientation", handleOrientation, true);
 /*
-//yes
  * This callback function will be called when any of the game buttons on the
  * screen is clicked on by the user (note that the user will not be able to
  * 'double-click' buttons, they will only be clickable once a button has
@@ -62,9 +64,33 @@ function sequenceHasDisplayed()
 */
 function userChoiceTimeout()
 {
-    // Include your own code here
+  console.log(orientationBeta + " " + orientationGamma);
+  //selecting red button when phone is rotated beyond 45 degrees both ways
+  if(orientationBeta >= 20){
+    if(orientationGamma >= 20){
+      selectRedButton();
+    }
+    //selecting yellow if phone is rotated 45 degrees in beta direction and -45 degrees in gamma direction
+    else if(orientationGamma <= -20){
+      selectYellowButton();
+    }
+  }
+  else if(orientationBeta <= -20){
+    if(orientationGamma >= 20){
+      selectGreenButton();
+    }
+    else if(orientationGamma <= -20){
+      selectBlueButton();
+    }
+  }
 }
-
+//Callback for device orientation change
+//Code copied from https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation
+function handleOrientation(event) {
+  // assigning beta and gamma to global variables
+  orientationBeta = event.beta;
+  orientationGamma = event.gamma;
+}
 /*
  * This callback function will be called when the user taps the button at the
  * top-right of the title bar to toggle between touch- and tilt-based input.
@@ -75,7 +101,14 @@ function userChoiceTimeout()
 */
 function changeMode(mode)
 {
-    // Include your own code here
+  //check if mode is set to touch mode
+  if(mode === TOUCH_MODE){
+    isTilt = false;
+  }
+  //if mode is not touch mode, check if its tilt mode, then this is executed
+  else if(mode === TILT_MODE){
+    isTilt = true;
+  }
 }
 
 // You may need to write toher functions.
