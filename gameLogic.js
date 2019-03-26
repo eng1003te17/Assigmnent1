@@ -33,16 +33,16 @@ function giveNextSequence()
     let progress = 0
     let difficultyLevel = 8
     let colourArray = []
-    while(progress != difficultyLevel)
-    {
-      let colours = Math.random(0,3);
-      if colours = 0;
-      {
-        colourArray.push("blue");
-      }
-      else
+  //  while(progress != difficultyLevel)
+    //{
+      //let colours = Math.random(0,3);
+    //  if colours = 0
+      //{
+        //colourArray.push("blue");
+    //  }
+      //else
 
-      return ["blue","blue","red"];
+      //return ["blue","blue","red"];
     }
     // Example return statement.
     return ["blue","blue","blue"];
