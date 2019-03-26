@@ -3,6 +3,13 @@ let isTilt = false;
 let orientationBeta, orientationGamma;
 //Add callback for device orientation change
 window.addEventListener("deviceorientation", handleOrientation, true);
+let colourArray = [];
+let testColourArray = [];
+let counter = 0;
+let numberCounter = 0;
+let numberCounter2 = 0;
+let levelPass = 0
+let levelFail = 0
 /*
  * This callback function will be called when any of the game buttons on the
  * screen is clicked on by the user (note that the user will not be able to
@@ -17,8 +24,58 @@ window.addEventListener("deviceorientation", handleOrientation, true);
  *     "red"
 */
 function buttonSelected(whichButton)
+
 {
-    // Include your own code here
+    let progress1 = 0;
+  //  testColourArray = [];
+    let difficultyLevel1 = 4;
+    testColourArray.push(whichButton)
+    if (levelPass===1)
+    {
+      numberCounter=0
+      numberCounter2=0
+      levelPass = 0
+    }
+    if (levelFail===1)
+    {
+      numberCounter=0
+      numberCounter2=0
+      levelFail = 0
+    }
+    counter++;
+    if (counter === difficultyLevel1)
+    {
+      for (let i=0; i < difficultyLevel1; i++)
+      {
+        if (testColourArray[i] === colourArray[i])
+        {
+          numberCounter++; //Maybe we should use +=
+          numberCounter2++;
+        }
+        else if (testColourArray[i] != colourArray[i])
+        {
+          numberCounter2++;
+        }
+      }
+    }
+    if (numberCounter2===difficultyLevel1)
+    {
+      if (numberCounter === difficultyLevel1)
+      {
+        console.log("You win")
+        showSuccess();
+        levelPass++;
+        counter = 0
+        testColourArray=[];
+      }
+      else {
+        console.log("You lose")
+        showFailure();
+        counter = 0;
+        testColourArray=[];
+        levelFail++;
+      }
+    }  // Include your own code here
 }
 
 /*
@@ -32,10 +89,34 @@ function buttonSelected(whichButton)
 */
 function giveNextSequence()
 {
-    // Include your own code here
+  let progress = 0
+  colourArray = [];
+  let difficultyLevel = 4
+  let colours = 0
+  while(progress != difficultyLevel)
+  {
+    colours = Math.floor(Math.random() * 4);
+    if (colours == 0)
+    {
+      colourArray.push("blue");
+    }
+    else if (colours == 1)
+    {
+      colourArray.push("red");
+    }
+    else if (colours == 2)
+    {
+      colourArray.push("yellow");
+    }
+    else if (colours == 3)
+    {
+      colourArray.push("green");
+    }
+    progress = progress + 1
 
-    // Example return statement.
-    return ["blue","blue","blue"];
+  }
+  console.log(colourArray);
+  return colourArray;
 }
 
 
