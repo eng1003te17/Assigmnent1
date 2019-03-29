@@ -3,6 +3,12 @@ let isTilt = false;
 let orientationBeta, orientationGamma;
 //Add callback for device orientation change
 window.addEventListener("deviceorientation", handleOrientation, true);
+//Indicator div and constants
+let visualDIV = document.createElement("DIV");
+const leftPercentage = 40;
+const topPercentage = 31;
+const minRotation = 15;
+
 let colourArray = [];
 let testColourArray = [];
 let counter = 0;
@@ -147,20 +153,20 @@ function userChoiceTimeout()
 {
   console.log(orientationBeta + " " + orientationGamma);
   //selecting red button when phone is rotated beyond 45 degrees both ways
-  if(orientationBeta >= 20){
-    if(orientationGamma >= 20){
+  if(orientationBeta >= minRotation){
+    if(orientationGamma >= minRotation){
       selectRedButton();
     }
     //selecting yellow if phone is rotated 45 degrees in beta direction and -45 degrees in gamma direction
-    else if(orientationGamma <= -20){
+    else if(orientationGamma <= -minRotation){
       selectYellowButton();
     }
   }
-  else if(orientationBeta <= -20){
-    if(orientationGamma >= 20){
+  else if(orientationBeta <= -minRotation){
+    if(orientationGamma >= minRotation){
       selectGreenButton();
     }
-    else if(orientationGamma <= -20){
+    else if(orientationGamma <= -minRotation){
       selectBlueButton();
     }
   }
@@ -171,6 +177,7 @@ function handleOrientation(event) {
   // assigning beta and gamma to global variables
   orientationBeta = event.beta;
   orientationGamma = event.gamma;
+  updateTiltIndicator();
 }
 /*
  * This callback function will be called when the user taps the button at the
@@ -189,7 +196,42 @@ function changeMode(mode)
   //if mode is not touch mode, check if its tilt mode, then this is executed
   else if(mode === TILT_MODE){
     isTilt = true;
+    addTiltIndicator();
   }
 }
-
+function addTiltIndicator(){
+  visualDIV.style.width = "40px";
+  visualDIV.style.height = "40px";
+  visualDIV.style.position = "absolute";
+  visualDIV.style.top = topPercentage + "%";
+  visualDIV.style.left = leftPercentage + "%";
+  visualDIV.style.borderRadius = "20px";
+  document.getElementsByClassName("page-content")[0].appendChild(visualDIV); 
+}
+function updateTiltIndicator(){
+  visualDIV.style.top = (topPercentage + orientationBeta) + "%";
+  visualDIV.style.left = (leftPercentage + orientationGamma) + "%";
+  updateTiltIndicatorColour();
+}
+function updateTiltIndicatorColour(){
+  let colour = "black";
+  if(orientationBeta >= minRotation){
+    if(orientationGamma >= minRotation){
+      colour = "red";
+    }
+    //selecting yellow if phone is rotated 45 degrees in beta direction and -45 degrees in gamma direction
+    else if(orientationGamma <= -minRotation){
+      colour = "yellow";
+    }
+  }
+  else if(orientationBeta <= -minRotation){
+    if(orientationGamma >= minRotation){
+      colour = "green";
+    }
+    else if(orientationGamma <= -minRotation){
+      colour = "blue";
+    }
+  }
+  visualDIV.style.background = colour;
+}
 // You may need to write toher functions.
