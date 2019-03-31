@@ -9,11 +9,11 @@ const leftPercentage = 40;
 const topPercentage = 31;
 const minRotation = 15;
 
-let colourArray = [];
-let testColourArray = [];
-let counter = 0;
-let difficultyLevel2 = 4;
-let levelPass2 = 0;
+let generatedColourArray = [];
+let inputColourArray = [];
+let inputArrayLength = 0;
+let difficultyLevel = 4;
+let sequencesPassed = 0;
 let hasFailed = false;
 /*
  * This callback function will be called when any of the game buttons on the
@@ -28,49 +28,51 @@ let hasFailed = false;
  *    "yellow"
  *     "red"
 */
+
+
 function buttonSelected(whichButton)
 
 {
-  let numberCounter = 0;
-  testColourArray.push(whichButton);
-  counter++;
-  if (counter === difficultyLevel2)
+  let correctColoursInput = 0;
+  inputColourArray.push(whichButton);
+  inputArrayLength++;
+  if (inputArrayLength === difficultyLevel)
   {
-    for (let i=0; i < difficultyLevel2; i++)
+    for (let i=0; i < difficultyLevel; i++)
     {
-      if (testColourArray[i] === colourArray[i])
+      if (inputColourArray[i] === generatedColourArray[i])
       {
-        numberCounter++;
+        correctColoursInput++;
       }
     }
-    if (numberCounter === difficultyLevel2)
+    if (correctColoursInput === difficultyLevel)
     {
       console.log("You win");
       showSuccess();
-      levelPass2++;
+      sequencesPassed++;
       displayToastMessage("nice");
       hasFailed = false;
     }
     else {
       console.log("You lose");
       showFailure();
-      levelPass2=0;
-      if(difficultyLevel2>4){
-          difficultyLevel2--;
+      sequencesPassed=0;
+      if(difficultyLevel>4){
+          difficultyLevel--;
       }
       if(hasFailed){
-        difficultyLevel2 = 4;
+        difficultyLevel = 4;
       }
       hasFailed = true;
     }
-    numberCounter=0;
-    counter = 0;
-    testColourArray=[];
+    correctColoursInput=0;
+    inputArrayLength = 0;
+    inputColourArray=[];
   }
-  if (levelPass2 === (difficultyLevel2 - 2))
+  if (sequencesPassed === (difficultyLevel - 2))
   {
-    difficultyLevel2++;
-    levelPass2 = 0;
+    difficultyLevel++;
+    sequencesPassed = 0;
   }
 }
 
@@ -85,30 +87,30 @@ function buttonSelected(whichButton)
 */
 function giveNextSequence()
 {
-  colourArray = [];
-  let colours = 0;
-  for(let progress = 0; progress < difficultyLevel2; progress++)
+  generatedColourArray = [];
+  let colourNumber = 0;
+  for(let progress = 0; progress < difficultyLevel; progress++)
   {
-    colours = Math.floor(Math.random() * 4);
-    if (colours === 0)
+    colourNumber = Math.floor(Math.random() * 4);
+    if (colourNumber === 0)
     {
-      colourArray.push("blue");
+      generatedColourArray.push("blue");
     }
-    else if (colours === 1)
+    else if (colourNumber === 1)
     {
-      colourArray.push("red");
+      generatedColourArray.push("red");
     }
-    else if (colours === 2)
+    else if (colourNumber === 2)
     {
-      colourArray.push("yellow");
+      generatedColourArray.push("yellow");
     }
-    else if (colours === 3)
+    else if (colourNumber === 3)
     {
-      colourArray.push("green");
+      generatedColourArray.push("green");
     }
   }
-  console.log(colourArray);
-  return colourArray;
+  console.log(generatedColourArray);
+  return generatedColourArray;
 }
 
 
@@ -178,6 +180,7 @@ function changeMode(mode)
   //check if mode is set to touch mode
   if(mode === TOUCH_MODE){
     isTilt = false;
+    removeTiltIndicator();
   }
   //if mode is not touch mode, check if its tilt mode, then this is executed
   else if(mode === TILT_MODE){
@@ -185,6 +188,7 @@ function changeMode(mode)
     addTiltIndicator();
   }
 }
+//Add the tilt indicator to the page and style it
 function addTiltIndicator(){
   visualDIV.style.width = "40px";
   visualDIV.style.height = "40px";
@@ -194,18 +198,24 @@ function addTiltIndicator(){
   visualDIV.style.borderRadius = "20px";
   document.getElementsByClassName("page-content")[0].appendChild(visualDIV);
 }
+//remove the tilt indicator from the DOM
+function removeTiltIndicator(){
+  visualDIV.remove();
+}
+//Update the position of the tilt indicator
 function updateTiltIndicator(){
   visualDIV.style.top = (topPercentage + orientationBeta) + "%";
   visualDIV.style.left = (leftPercentage + orientationGamma) + "%";
   updateTiltIndicatorColour();
 }
+//Update colour of indicator if it is in the correct range
 function updateTiltIndicatorColour(){
   let colour = "black";
   if(orientationBeta >= minRotation){
     if(orientationGamma >= minRotation){
       colour = "red";
     }
-    //selecting yellow if phone is rotated 45 degrees in beta direction and -45 degrees in gamma direction
+    //selecting yellow if phone is rotated minRotation degrees in beta direction and -minRotation degrees in gamma direction
     else if(orientationGamma <= -minRotation){
       colour = "yellow";
     }
@@ -220,4 +230,3 @@ function updateTiltIndicatorColour(){
   }
   visualDIV.style.background = colour;
 }
-// You may need to write toher functions.
