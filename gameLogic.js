@@ -1,13 +1,23 @@
 "use strict";
+/*
+* Purpose: This file is the logic for the memory training game
+* Organization/Team: Team 17
+* Version: 1.0
+*/
+// TODO:
+//Timeout incorrect checking
+//Add a message when there is no entry
+//All of Necessary Information is shown
+//Use the absolute orientationSensor
 let isTilt = false;
 let orientationBeta, orientationGamma;
 //Add callback for device orientation change
 window.addEventListener("deviceorientation", handleOrientation, true);
 //Indicator div and constants
 let visualDIV = document.createElement("DIV");
-const leftPercentage = 40;
-const topPercentage = 31;
-const minRotation = 15;
+const DEFAULT_LEFT_PERCENTAGE = 40;
+const DEFAULT_TOP_PERCENTAGE = 31;
+const MIN_ROTATION_RANGE = 15;
 
 let generatedColourArray = [];
 let inputColourArray = [];
@@ -30,28 +40,27 @@ let hasFailed = false;
 */
 
 
-function buttonSelected(whichButton)
-
-{
+function buttonSelected(whichButton){
   let correctColoursInput = 0;
   inputColourArray.push(whichButton);
   inputArrayLength++;
-  if (inputArrayLength === difficultyLevel)
-  {
-    for (let i=0; i < difficultyLevel; i++)
-    {
-      if (inputColourArray[i] === generatedColourArray[i])
-      {
+  if (inputArrayLength === difficultyLevel){
+    for (let i=0; i < difficultyLevel; i++){
+      if (inputColourArray[i] === generatedColourArray[i]){
         correctColoursInput++;
       }
     }
-    if (correctColoursInput === difficultyLevel)
-    {
+    if (correctColoursInput === difficultyLevel){
       console.log("You win");
       showSuccess();
       sequencesPassed++;
-      displayToastMessage("nice");
       hasFailed = false;
+      //Check to see if we need to go to the next level
+      if (sequencesPassed === (difficultyLevel - 2)){
+        difficultyLevel++;
+        sequencesPassed = 0;
+      }
+      displayToastMessage("Nice, you are now on level " + (difficultyLevel-3));
     }
     else {
       console.log("You lose");
@@ -64,15 +73,11 @@ function buttonSelected(whichButton)
         difficultyLevel = 4;
       }
       hasFailed = true;
+      displayToastMessage("Bad luck, you are now on level " + (difficultyLevel-3));
     }
     correctColoursInput=0;
     inputArrayLength = 0;
     inputColourArray=[];
-  }
-  if (sequencesPassed === (difficultyLevel - 2))
-  {
-    difficultyLevel++;
-    sequencesPassed = 0;
   }
 }
 
@@ -87,25 +92,21 @@ function buttonSelected(whichButton)
 */
 function giveNextSequence()
 {
+  //Empty the array so we can add entries later
   generatedColourArray = [];
   let colourNumber = 0;
-  for(let progress = 0; progress < difficultyLevel; progress++)
-  {
+  for(let progress = 0; progress < difficultyLevel; progress++){
     colourNumber = Math.floor(Math.random() * 4);
-    if (colourNumber === 0)
-    {
+    if (colourNumber === 0){
       generatedColourArray.push("blue");
     }
-    else if (colourNumber === 1)
-    {
+    else if (colourNumber === 1){
       generatedColourArray.push("red");
     }
-    else if (colourNumber === 2)
-    {
+    else if (colourNumber === 2){
       generatedColourArray.push("yellow");
     }
-    else if (colourNumber === 3)
-    {
+    else if (colourNumber === 3){
       generatedColourArray.push("green");
     }
   }
@@ -118,8 +119,7 @@ function giveNextSequence()
  * This callback function is called when the sequence to display to the user
  * has finished displaying and user is now able to click buttons again.
 */
-function sequenceHasDisplayed()
-{
+function sequenceHasDisplayed(){
     // Include your own code here
 }
 
@@ -137,26 +137,30 @@ function sequenceHasDisplayed()
  *    selectBlueButton
  *    selectGreenButton
 */
-function userChoiceTimeout()
-{
+function userChoiceTimeout(){
   console.log(orientationBeta + " " + orientationGamma);
-  //selecting red button when phone is rotated beyond 45 degrees both ways
-  if(orientationBeta >= minRotation){
-    if(orientationGamma >= minRotation){
-      selectRedButton();
+  if(isTilt){
+    //selecting red button when phone is rotated beyond 45 degrees both ways
+    if(orientationBeta >= MIN_ROTATION_RANGE){
+      if(orientationGamma >= MIN_ROTATION_RANGE){
+        selectRedButton();
+      }
+      //selecting yellow if phone is rotated 45 degrees in beta direction and -45 degrees in gamma direction
+      else if(orientationGamma <= -MIN_ROTATION_RANGE){
+        selectYellowButton();
+      }
     }
-    //selecting yellow if phone is rotated 45 degrees in beta direction and -45 degrees in gamma direction
-    else if(orientationGamma <= -minRotation){
-      selectYellowButton();
+    else if(orientationBeta <= -MIN_ROTATION_RANGE){
+      if(orientationGamma >= MIN_ROTATION_RANGE){
+        selectGreenButton();
+      }
+      else if(orientationGamma <= -MIN_ROTATION_RANGE){
+        selectBlueButton();
+      }
     }
   }
-  else if(orientationBeta <= -minRotation){
-    if(orientationGamma >= minRotation){
-      selectGreenButton();
-    }
-    else if(orientationGamma <= -minRotation){
-      selectBlueButton();
-    }
+  else {
+    //Display timeout message
   }
 }
 //Callback for device orientation change
@@ -175,8 +179,7 @@ function handleOrientation(event) {
  *    TOUCH_MODE
  *    TILT_MODE
 */
-function changeMode(mode)
-{
+function changeMode(mode){
   //check if mode is set to touch mode
   if(mode === TOUCH_MODE){
     isTilt = false;
@@ -193,8 +196,8 @@ function addTiltIndicator(){
   visualDIV.style.width = "40px";
   visualDIV.style.height = "40px";
   visualDIV.style.position = "absolute";
-  visualDIV.style.top = topPercentage + "%";
-  visualDIV.style.left = leftPercentage + "%";
+  visualDIV.style.top = DEFAULT_TOP_PERCENTAGE + "%";
+  visualDIV.style.left = DEFAULT_LEFT_PERCENTAGE + "%";
   visualDIV.style.borderRadius = "20px";
   document.getElementsByClassName("page-content")[0].appendChild(visualDIV);
 }
@@ -204,27 +207,27 @@ function removeTiltIndicator(){
 }
 //Update the position of the tilt indicator
 function updateTiltIndicator(){
-  visualDIV.style.top = (topPercentage + orientationBeta) + "%";
-  visualDIV.style.left = (leftPercentage + orientationGamma) + "%";
+  visualDIV.style.top = (DEFAULT_TOP_PERCENTAGE + orientationBeta) + "%";
+  visualDIV.style.left = (DEFAULT_LEFT_PERCENTAGE + orientationGamma) + "%";
   updateTiltIndicatorColour();
 }
 //Update colour of indicator if it is in the correct range
 function updateTiltIndicatorColour(){
   let colour = "black";
-  if(orientationBeta >= minRotation){
-    if(orientationGamma >= minRotation){
+  if(orientationBeta >= MIN_ROTATION_RANGE){
+    if(orientationGamma >= MIN_ROTATION_RANGE){
       colour = "red";
     }
-    //selecting yellow if phone is rotated minRotation degrees in beta direction and -minRotation degrees in gamma direction
-    else if(orientationGamma <= -minRotation){
+    //selecting yellow if phone is rotated MIN_ROTATION_RANGE degrees in beta direction and -MIN_ROTATION_RANGE degrees in gamma direction
+    else if(orientationGamma <= -MIN_ROTATION_RANGE){
       colour = "yellow";
     }
   }
-  else if(orientationBeta <= -minRotation){
-    if(orientationGamma >= minRotation){
+  else if(orientationBeta <= -MIN_ROTATION_RANGE){
+    if(orientationGamma >= MIN_ROTATION_RANGE){
       colour = "green";
     }
-    else if(orientationGamma <= -minRotation){
+    else if(orientationGamma <= -MIN_ROTATION_RANGE){
       colour = "blue";
     }
   }
