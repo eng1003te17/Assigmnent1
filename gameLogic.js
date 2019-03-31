@@ -12,10 +12,9 @@ const minRotation = 15;
 let colourArray = [];
 let testColourArray = [];
 let counter = 0;
-let numberCounter = 0;
-let numberCounter2 = 0;
-let levelPass = 0
-let levelFail = 0
+let difficultyLevel2 = 4;
+let levelPass2 = 0;
+let hasFailed = false;
 /*
  * This callback function will be called when any of the game buttons on the
  * screen is clicked on by the user (note that the user will not be able to
@@ -32,56 +31,47 @@ let levelFail = 0
 function buttonSelected(whichButton)
 
 {
-    let progress1 = 0;
-  //  testColourArray = [];
-    let difficultyLevel1 = 4;
-    testColourArray.push(whichButton)
-    if (levelPass===1)
+  let numberCounter = 0;
+  testColourArray.push(whichButton);
+  counter++;
+  if (counter === difficultyLevel2)
+  {
+    for (let i=0; i < difficultyLevel2; i++)
     {
-      numberCounter=0
-      numberCounter2=0
-      levelPass = 0
-    }
-    if (levelFail===1)
-    {
-      numberCounter=0
-      numberCounter2=0
-      levelFail = 0
-    }
-    counter++;
-    if (counter === difficultyLevel1)
-    {
-      for (let i=0; i < difficultyLevel1; i++)
+      if (testColourArray[i] === colourArray[i])
       {
-        if (testColourArray[i] === colourArray[i])
-        {
-          numberCounter++; //Maybe we should use +=
-          numberCounter2++;
-        }
-        else if (testColourArray[i] != colourArray[i])
-        {
-          numberCounter2++;
-        }
+        numberCounter++;
       }
     }
-    if (numberCounter2===difficultyLevel1)
+    if (numberCounter === difficultyLevel2)
     {
-      if (numberCounter === difficultyLevel1)
-      {
-        console.log("You win")
-        showSuccess();
-        levelPass++;
-        counter = 0
-        testColourArray=[];
+      console.log("You win");
+      showSuccess();
+      levelPass2++;
+      displayToastMessage("nice");
+      hasFailed = false;
+    }
+    else {
+      console.log("You lose");
+      showFailure();
+      levelPass2=0;
+      if(difficultyLevel2>4){
+          difficultyLevel2--;
       }
-      else {
-        console.log("You lose")
-        showFailure();
-        counter = 0;
-        testColourArray=[];
-        levelFail++;
+      if(hasFailed){
+        difficultyLevel2 = 4;
       }
-    }  // Include your own code here
+      hasFailed = true;
+    }
+    numberCounter=0;
+    counter = 0;
+    testColourArray=[];
+  }
+  if (levelPass2 === (difficultyLevel2 - 2))
+  {
+    difficultyLevel2++;
+    levelPass2 = 0;
+  }
 }
 
 /*
@@ -95,31 +85,27 @@ function buttonSelected(whichButton)
 */
 function giveNextSequence()
 {
-  let progress = 0
   colourArray = [];
-  let difficultyLevel = 4
-  let colours = 0
-  while(progress != difficultyLevel)
+  let colours = 0;
+  for(let progress = 0; progress < difficultyLevel2; progress++)
   {
     colours = Math.floor(Math.random() * 4);
-    if (colours == 0)
+    if (colours === 0)
     {
       colourArray.push("blue");
     }
-    else if (colours == 1)
+    else if (colours === 1)
     {
       colourArray.push("red");
     }
-    else if (colours == 2)
+    else if (colours === 2)
     {
       colourArray.push("yellow");
     }
-    else if (colours == 3)
+    else if (colours === 3)
     {
       colourArray.push("green");
     }
-    progress = progress + 1
-
   }
   console.log(colourArray);
   return colourArray;
@@ -206,7 +192,7 @@ function addTiltIndicator(){
   visualDIV.style.top = topPercentage + "%";
   visualDIV.style.left = leftPercentage + "%";
   visualDIV.style.borderRadius = "20px";
-  document.getElementsByClassName("page-content")[0].appendChild(visualDIV); 
+  document.getElementsByClassName("page-content")[0].appendChild(visualDIV);
 }
 function updateTiltIndicator(){
   visualDIV.style.top = (topPercentage + orientationBeta) + "%";
