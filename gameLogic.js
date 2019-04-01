@@ -5,14 +5,16 @@
 * Version: 1.0
 */
 // TODO:
-//Timeout incorrect checking
-//Add a message when there is no entry
+//Timeout incorrect checking                    DONE
+//Add a message when there is no entry          DONE
 //All of Necessary Information is shown
 //Use the absolute orientationSensor
 let isTilt = false;
 let orientationBeta, orientationGamma;
 //Add callback for device orientation change
-window.addEventListener("deviceorientation", handleOrientation, true);
+//Orientation Sensor
+let deviceAbsoluteSensor = null;
+//window.addEventListener("deviceorientation", handleOrientation, true);
 //Indicator div and constants
 let visualDIV = document.createElement("DIV");
 const DEFAULT_LEFT_PERCENTAGE = 40;
@@ -175,8 +177,8 @@ function userChoiceTimeout(){
 //Code copied from https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation
 function handleOrientation(event) {
   // assigning beta and gamma to global variables
-  orientationBeta = event.beta;
-  orientationGamma = event.gamma;
+  orientationBeta = event.quaternion[0];
+  orientationGamma = event.quaternion[1];
   updateTiltIndicator();
 }
 /*
@@ -197,6 +199,7 @@ function changeMode(mode){
   else if(mode === TILT_MODE){
     isTilt = true;
     addTiltIndicator();
+    initOrientationSensor();
   }
 }
 //Add the tilt indicator to the page and style it
@@ -212,6 +215,11 @@ function addTiltIndicator(){
 //remove the tilt indicator from the DOM
 function removeTiltIndicator(){
   visualDIV.remove();
+}
+//Initialise the orientation Sensor
+function initOrientationSensor(){
+  deviceAbsoluteSensor = new AbsoluteOrientationSensor({ frequency: 10 });
+  deviceAbsolute.addEventListener('reading', () => handleOrientation(deviceAbsoluteSensor));
 }
 //Update the position of the tilt indicator
 function updateTiltIndicator(){
