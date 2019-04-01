@@ -59,26 +59,30 @@ function buttonSelected(whichButton){
       if (sequencesPassed === (difficultyLevel - 2)){
         difficultyLevel++;
         sequencesPassed = 0;
+        displayToastMessage("Nice, you are now on level " + (difficultyLevel-3));
       }
-      displayToastMessage("Nice, you are now on level " + (difficultyLevel-3));
     }
     else {
       console.log("You lose");
-      showFailure();
-      sequencesPassed=0;
-      if(difficultyLevel>4){
-          difficultyLevel--;
-      }
-      if(hasFailed){
-        difficultyLevel = 4;
-      }
-      hasFailed = true;
-      displayToastMessage("Bad luck, you are now on level " + (difficultyLevel-3));
+      reduceDifficulty();
     }
     correctColoursInput=0;
     inputArrayLength = 0;
     inputColourArray=[];
   }
+}
+//Reduces the difficuty level
+function reduceDifficulty(){
+  showFailure();
+  sequencesPassed=0;
+  if(difficultyLevel>4){
+      difficultyLevel--;
+  }
+  if(hasFailed){
+    difficultyLevel = 4;
+  }
+  hasFailed = true;
+  displayToastMessage("Bad luck, you are now on level " + (difficultyLevel-3));
 }
 
 /*
@@ -161,6 +165,10 @@ function userChoiceTimeout(){
   }
   else {
     //Display timeout message
+    displayToastMessage("You failed to choose an option!")
+    //Click the na button
+    reduceDifficulty();
+
   }
 }
 //Callback for device orientation change
