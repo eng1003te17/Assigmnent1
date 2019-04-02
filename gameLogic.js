@@ -8,15 +8,17 @@
 //Timeout incorrect checking                    DONE
 //Add a message when there is no entry          DONE
 //All of Necessary Information is shown
-//Use the absolute orientationSensor
+//Use the absolute orientationSensor            DONE
 let isTilt = false;
-let orientationBeta, orientationGamma;
+let orientationBeta, orientationGamma, orientationZ;
+let hasOriented = false;
 //Add callback for device orientation change
 //Orientation Sensor
 let deviceAbsoluteSensor = null;
 //window.addEventListener("deviceorientation", handleOrientation, true);
 //Indicator div and constants
 let visualDIV = document.createElement("DIV");
+let outputDIV = document.getElementById("output");
 const DEFAULT_LEFT_PERCENTAGE = 40;
 const DEFAULT_TOP_PERCENTAGE = 31;
 const MIN_ROTATION_RANGE = 15;
@@ -177,9 +179,13 @@ function userChoiceTimeout(){
 //Code copied from https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation
 function handleOrientation(event) {
   // assigning beta and gamma to global variables
-  orientationBeta = event.quaternion[0];
-  orientationGamma = event.quaternion[1];
+  orientationBeta = Math.floor(event.quaternion[0]*100);
+  orientationGamma = Math.floor(event.quaternion[1]*100);
+  orientationZ = event.quaternion[2];
   updateTiltIndicator();
+  if(!hasOriented){
+    checkUserOrientation();
+  }
 }
 /*
  * This callback function will be called when the user taps the button at the
@@ -198,6 +204,7 @@ function changeMode(mode){
   //if mode is not touch mode, check if its tilt mode, then this is executed
   else if(mode === TILT_MODE){
     isTilt = true;
+    hasOriented = false;
     addTiltIndicator();
     initOrientationSensor();
   }
@@ -219,7 +226,24 @@ function removeTiltIndicator(){
 //Initialise the orientation Sensor
 function initOrientationSensor(){
   deviceAbsoluteSensor = new AbsoluteOrientationSensor({ frequency: 10 });
-  deviceAbsolute.addEventListener('reading', () => handleOrientation(deviceAbsoluteSensor));
+  deviceAbsoluteSensor.addEventListener('reading', () => handleOrientation(deviceAbsoluteSensor));
+  deviceAbsoluteSensor.start();
+}
+  //Get the user to position themselves at z=0
+function checkUserOrientation(){
+  let outputText = "To enable tilt support please rotate your body to the ";
+  if(orientationZ < -0.3){
+    outputText += "left";
+  }
+  else if(orientationZ > 0.3){
+    outputText += "right";
+  }
+  else {
+    displayToastMessage("You are now oriented correctly");
+    outputText = "";
+    hasOriented = true;
+  }
+  outputDIV.innerHTML = outputText;
 }
 //Update the position of the tilt indicator
 function updateTiltIndicator(){
