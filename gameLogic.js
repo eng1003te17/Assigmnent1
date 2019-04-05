@@ -4,31 +4,32 @@
 * Organization/Team: Team 17
 * Version: 1.0
 */
-// TODO:
-//Timeout incorrect checking                    DONE
-//Add a message when there is no entry          DONE
-//All of Necessary Information is shown
-//Use the absolute orientationSensor            DONE
 let isTilt = false;
 let orientationBeta, orientationGamma, orientationZ;
 let hasOriented = false;
 //Add callback for device orientation change
 //Orientation Sensor
 let deviceAbsoluteSensor = null;
-//window.addEventListener("deviceorientation", handleOrientation, true);
+
 //Indicator div and constants
 let visualDIV = document.createElement("DIV");
 let outputDIV = document.getElementById("output");
+//Style the output DIV
+outputDIV.style.margin = "20px 0 0 20px";
+//Constants
 const DEFAULT_LEFT_PERCENTAGE = 40;
 const DEFAULT_TOP_PERCENTAGE = 31;
-const MIN_ROTATION_RANGE = 15;
+const MIN_ROTATION_RANGE = 10;
 
 let generatedColourArray = [];
 let inputColourArray = [];
-let inputArrayLength = 0;
 let difficultyLevel = 4;
 let sequencesPassed = 0;
 let hasFailed = false;
+
+//Show the output
+updateOutputMessage();
+
 /*
  * This callback function will be called when any of the game buttons on the
  * screen is clicked on by the user (note that the user will not be able to
@@ -42,22 +43,23 @@ let hasFailed = false;
  *    "yellow"
  *     "red"
 */
-
-
 function buttonSelected(whichButton){
   let correctColoursInput = 0;
+  //Adds selected colour to the end of inputColourArray
   inputColourArray.push(whichButton);
-  inputArrayLength++;
-  if (inputArrayLength === difficultyLevel){
+  //If statement checks whether the required amount of colours are entered
+  if (inputColourArray.length === difficultyLevel){
+  //For loops verfies whether or not the user has entered the entire sequence correctly
     for (let i=0; i < difficultyLevel; i++){
       if (inputColourArray[i] === generatedColourArray[i]){
         correctColoursInput++;
       }
     }
+    //If statement runs if the correct sequence was entered and increments the sequencesPassed counter
     if (correctColoursInput === difficultyLevel){
-      console.log("You win");
       showSuccess();
       sequencesPassed++;
+      //hasFailed tracks consecutive fails
       hasFailed = false;
       //Check to see if we need to go to the next level
       if (sequencesPassed === (difficultyLevel - 2)){
@@ -66,15 +68,36 @@ function buttonSelected(whichButton){
         displayToastMessage("Nice, you are now on level " + (difficultyLevel-3));
       }
     }
+    //Else statement Runs if the incorrect sequence was entered
     else {
-      console.log("You lose");
+      //Calls upon the reduceDifficulty function to decrease difficulty accordingly
       reduceDifficulty();
     }
+    //Resets variables to initial conditions
     correctColoursInput=0;
-    inputArrayLength = 0;
     inputColourArray=[];
   }
+  updateOutputMessage();
 }
+
+//Display the output message. enterSequence has a default value of false
+function updateOutputMessage(enterSequence = false, displayingSequence = false){
+  let outputText = "";
+  if(enterSequence){
+    outputText += "<b>Enter the sequence</b> <br />";
+  }
+  else if(displayingSequence){
+    outputText += "<b>Remember this sequence</b> <br />";
+  }
+//Output messages relating to what user has entered and needs to enter to progress
+  outputText += "Colours left: " + (difficultyLevel - inputColourArray.length) + "<br />";
+  outputText += "Sequence length: " + (difficultyLevel) + "<br />";
+  outputText += "Correct sequences needed: " + (difficultyLevel-2) + "<br />";
+  outputText += "Correct sequences remaining: " + (difficultyLevel-2-sequencesPassed) + "<br />";
+  outputDIV.innerHTML = outputText;
+  return outputText;
+}
+
 //Reduces the difficuty level
 function reduceDifficulty(){
   showFailure();
@@ -103,6 +126,7 @@ function giveNextSequence()
   //Empty the array so we can add entries later
   generatedColourArray = [];
   let colourNumber = 0;
+  //For loop generates random integer from 1 to 4 and pairs it to a colour which is added to the generatedColourArray
   for(let progress = 0; progress < difficultyLevel; progress++){
     colourNumber = Math.floor(Math.random() * 4);
     if (colourNumber === 0){
@@ -118,7 +142,7 @@ function giveNextSequence()
       generatedColourArray.push("green");
     }
   }
-  console.log(generatedColourArray);
+  updateOutputMessage(false, true);
   return generatedColourArray;
 }
 
@@ -128,7 +152,8 @@ function giveNextSequence()
  * has finished displaying and user is now able to click buttons again.
 */
 function sequenceHasDisplayed(){
-    // Include your own code here
+    //Ask the user to input the sequence
+    updateOutputMessage(true);
 }
 
 /*
@@ -146,39 +171,24 @@ function sequenceHasDisplayed(){
  *    selectGreenButton
 */
 function userChoiceTimeout(){
-  console.log(orientationBeta + " " + orientationGamma);
   if(isTilt){
-    //selecting red button when phone is rotated beyond 45 degrees both ways
-    if(orientationBeta >= MIN_ROTATION_RANGE){
-      if(orientationGamma >= MIN_ROTATION_RANGE){
-        selectRedButton();
-      }
-      //selecting yellow if phone is rotated 45 degrees in beta direction and -45 degrees in gamma direction
-      else if(orientationGamma <= -MIN_ROTATION_RANGE){
-        selectYellowButton();
-      }
-    }
-    else if(orientationBeta <= -MIN_ROTATION_RANGE){
-      if(orientationGamma >= MIN_ROTATION_RANGE){
-        selectGreenButton();
-      }
-      else if(orientationGamma <= -MIN_ROTATION_RANGE){
-        selectBlueButton();
-      }
+    //Selecting the required colour if phone is rotated MIN_ROTATION_RANGE degrees in beta direction and -MIN_ROTATION_RANGE degrees in gamma direction
+    let buttonSelectionLookup = [selectRedButton, selectYellowButton, selectGreenButton, selectBlueButton, function(){return -1}];
+    if(buttonSelectionLookup[checkRotationRange()]() !== -1){
+          return;
     }
   }
-  else {
-    //Display timeout message
-    displayToastMessage("You failed to choose an option!")
-    //Click the na button
-    reduceDifficulty();
-
-  }
+  //Display timeout message
+  displayToastMessage("You failed to choose an option!");
+  //Reset the level
+  buttonPressesRemaining = 0;
+  checkUserFinished();
+  reduceDifficulty();
 }
+
 //Callback for device orientation change
-//Code copied from https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation
 function handleOrientation(event) {
-  // assigning beta and gamma to global variables
+  // Assigning beta and gamma to global variables
   orientationBeta = Math.floor(event.quaternion[0]*100);
   orientationGamma = Math.floor(event.quaternion[1]*100);
   orientationZ = event.quaternion[2];
@@ -196,12 +206,12 @@ function handleOrientation(event) {
  *    TILT_MODE
 */
 function changeMode(mode){
-  //check if mode is set to touch mode
+  //This checks if mode is set to touch mode
   if(mode === TOUCH_MODE){
     isTilt = false;
     removeTiltIndicator();
   }
-  //if mode is not touch mode, check if its tilt mode, then this is executed
+  //Check if mode is set to tilt mode, then tilt mode is initialised
   else if(mode === TILT_MODE){
     isTilt = true;
     hasOriented = false;
@@ -219,11 +229,11 @@ function addTiltIndicator(){
   visualDIV.style.borderRadius = "20px";
   document.getElementsByClassName("page-content")[0].appendChild(visualDIV);
 }
-//remove the tilt indicator from the DOM
+//Remove the tilt indicator from the DOM
 function removeTiltIndicator(){
   visualDIV.remove();
 }
-//Initialise the orientation Sensor
+//Initialise the orientationSensor
 function initOrientationSensor(){
   deviceAbsoluteSensor = new AbsoluteOrientationSensor({ frequency: 10 });
   deviceAbsoluteSensor.addEventListener('reading', () => handleOrientation(deviceAbsoluteSensor));
@@ -240,7 +250,7 @@ function checkUserOrientation(){
   }
   else {
     displayToastMessage("You are now oriented correctly");
-    outputText = "";
+    outputText = updateOutputMessage();
     hasOriented = true;
   }
   outputDIV.innerHTML = outputText;
@@ -253,23 +263,29 @@ function updateTiltIndicator(){
 }
 //Update colour of indicator if it is in the correct range
 function updateTiltIndicatorColour(){
-  let colour = "black";
+  //Selecting the required colour if phone is rotated MIN_ROTATION_RANGE degrees in beta direction and -MIN_ROTATION_RANGE degrees in gamma direction
+  let colourLookup = ["red", "yellow", "green", "blue", "black"];
+  let colour = colourLookup[checkRotationRange()];
+  visualDIV.style.background = colour;
+}
+
+//Returns a number representing the range and 4 if it is outside
+function checkRotationRange(){
   if(orientationBeta >= MIN_ROTATION_RANGE){
     if(orientationGamma >= MIN_ROTATION_RANGE){
-      colour = "red";
+      return 0;
     }
-    //selecting yellow if phone is rotated MIN_ROTATION_RANGE degrees in beta direction and -MIN_ROTATION_RANGE degrees in gamma direction
     else if(orientationGamma <= -MIN_ROTATION_RANGE){
-      colour = "yellow";
+      return 1;
     }
   }
   else if(orientationBeta <= -MIN_ROTATION_RANGE){
     if(orientationGamma >= MIN_ROTATION_RANGE){
-      colour = "green";
+      return 2;
     }
     else if(orientationGamma <= -MIN_ROTATION_RANGE){
-      colour = "blue";
+      return 3;
     }
   }
-  visualDIV.style.background = colour;
+  return 4
 }
